@@ -4,6 +4,7 @@
 /// Matches PHP POS terminal layout exactly
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:html' as html;
@@ -2736,7 +2737,7 @@ class _ReceiptDialog extends StatelessWidget {
 
     return Dialog(
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 500),
+        constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -2790,7 +2791,7 @@ class _ReceiptDialog extends StatelessWidget {
               ),
             ),
             // Receipt Content
-            Flexible(
+            Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
                 child: Column(
