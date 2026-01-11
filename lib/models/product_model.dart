@@ -57,7 +57,11 @@ class ProductModel {
       isAvailable: json['is_available'] != null
           ? (json['is_available'] is bool ? json['is_available'] : (json['is_available'] as num).toInt() == 1)
           : (json['availability'] != null ? (json['availability'] is bool ? json['availability'] : (json['availability'] as num).toInt() == 1) : true),
-      isRestaurantItem: json['menu_id'] != null || json['category'] != null || json['is_restaurant_item'] != null,
+      isRestaurantItem: json['is_restaurant_item'] != null
+          ? (json['is_restaurant_item'] is bool 
+              ? json['is_restaurant_item'] 
+              : (json['is_restaurant_item'] as num).toInt() == 1)
+          : (json['menu_id'] != null || json['category'] != null),
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,
