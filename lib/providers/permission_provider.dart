@@ -23,6 +23,8 @@ class PermissionProvider extends ChangeNotifier {
     // Listen to auth state changes to reload permissions
     _auth.authStateChanges().listen((User? user) {
       if (user != null) {
+        // Clear cache when user logs in to ensure fresh permissions
+        _permissionChecker.clearCache();
         loadPermissions();
       } else {
         clearPermissions();
@@ -41,6 +43,12 @@ class PermissionProvider extends ChangeNotifier {
         final userId = _currentUser!.userId?.toString() ?? _auth.currentUser?.uid;
         _permissions = await _permissionChecker.getUserPermissions(userId);
         debugPrint('PermissionProvider: Loaded permissions for user ${_currentUser!.username} (role: ${_currentUser!.role}): ${_permissions.toList()}');
+        debugPrint('PermissionProvider: Total permissions loaded: ${_permissions.length}');
+        
+        // Warn if admin user has few permissions
+        if (_currentUser!.role.toLowerCase() == 'admin' && _permissions.length < 20) {
+          debugPrint('⚠️ WARNING: Admin user has only ${_permissions.length} permissions. Expected 28+. Check Firestore role and permissions.');
+        }
       } else {
         _permissions = {};
         debugPrint('PermissionProvider: No current user found');
