@@ -151,7 +151,9 @@ class _POSManagementScreenState extends State<POSManagementScreen> {
 
   Future<void> _loadReservationMetrics() async {
     try {
-      final reservations = await _reservationService.getReservations();
+      // Use getReservationsForPayment to get reservations from Firestore
+      // This includes all reservations with balance_due > 0, which is what we want to show
+      final reservations = await _reservationService.getReservationsForPayment();
       final today = DateTime.now();
       final todayDate = DateTime(today.year, today.month, today.day);
 
@@ -161,7 +163,7 @@ class _POSManagementScreenState extends State<POSManagementScreen> {
           r.checkInDate.month,
           r.checkInDate.day,
         );
-        return checkInDate.isAtSameMomentAs(todayDate) || checkInDate.isAfter(todayDate) &&
+        return (checkInDate.isAtSameMomentAs(todayDate) || checkInDate.isAfter(todayDate)) &&
             r.status != 'cancelled';
       }).toList();
 
