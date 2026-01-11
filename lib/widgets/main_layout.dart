@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../core/theme/colors.dart';
 import '../providers/auth_provider.dart';
+import '../providers/permission_provider.dart';
 
 class MainLayout extends StatefulWidget {
   final Widget child;
@@ -173,88 +174,105 @@ class _Sidebar extends StatelessWidget {
           ),
           // Navigation Menu
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(vertical: 15),
-              children: [
-                _NavItem(
-                  icon: Icons.dashboard,
-                  label: 'Dashboard',
-                  route: '/dashboard',
-                  currentRoute: currentRoute,
-                  collapsed: collapsed,
-                ),
-                _NavItem(
-                  icon: Icons.people,
-                  label: 'Guests',
-                  route: '/guests',
-                  currentRoute: currentRoute,
-                  collapsed: collapsed,
-                ),
-                _NavItem(
-                  icon: Icons.door_front_door,
-                  label: 'Rooms',
-                  route: '/rooms',
-                  currentRoute: currentRoute,
-                  collapsed: collapsed,
-                ),
-                _NavItem(
-                  icon: Icons.calendar_today,
-                  label: 'Reservations',
-                  route: '/reservations',
-                  currentRoute: currentRoute,
-                  collapsed: collapsed,
-                ),
-                _NavItem(
-                  icon: Icons.credit_card,
-                  label: 'Billing',
-                  route: '/billing',
-                  currentRoute: currentRoute,
-                  collapsed: collapsed,
-                ),
-                _NavItem(
-                  icon: Icons.bar_chart,
-                  label: 'Reports',
-                  route: '/reports',
-                  currentRoute: currentRoute,
-                  collapsed: collapsed,
-                ),
-                _NavItem(
-                  icon: Icons.point_of_sale,
-                  label: 'POS Management',
-                  route: '/pos',
-                  currentRoute: currentRoute,
-                  collapsed: collapsed,
-                ),
-                _NavItem(
-                  icon: Icons.message,
-                  label: 'Messages',
-                  route: '/messages',
-                  currentRoute: currentRoute,
-                  collapsed: collapsed,
-                ),
-                _NavItem(
-                  icon: Icons.settings,
-                  label: 'Settings',
-                  route: '/settings',
-                  currentRoute: currentRoute,
-                  collapsed: collapsed,
-                ),
-                const Divider(color: Color.fromRGBO(255, 255, 255, 0.1), height: 20),
-                _NavItem(
-                  icon: Icons.people_outline,
-                  label: 'Users',
-                  route: '/users',
-                  currentRoute: currentRoute,
-                  collapsed: collapsed,
-                ),
-                _NavItem(
-                  icon: Icons.security,
-                  label: 'Roles & Permissions',
-                  route: '/roles',
-                  currentRoute: currentRoute,
-                  collapsed: collapsed,
-                ),
-              ],
+            child: Consumer<PermissionProvider>(
+              builder: (context, permissionProvider, child) {
+                final hasPermission = permissionProvider.hasPermission;
+                return ListView(
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  children: [
+                    if (hasPermission('dashboard.view'))
+                      _NavItem(
+                        icon: Icons.dashboard,
+                        label: 'Dashboard',
+                        route: '/dashboard',
+                        currentRoute: currentRoute,
+                        collapsed: collapsed,
+                      ),
+                    if (hasPermission('guests.view'))
+                      _NavItem(
+                        icon: Icons.people,
+                        label: 'Guests',
+                        route: '/guests',
+                        currentRoute: currentRoute,
+                        collapsed: collapsed,
+                      ),
+                    if (hasPermission('rooms.view'))
+                      _NavItem(
+                        icon: Icons.door_front_door,
+                        label: 'Rooms',
+                        route: '/rooms',
+                        currentRoute: currentRoute,
+                        collapsed: collapsed,
+                      ),
+                    if (hasPermission('reservations.view'))
+                      _NavItem(
+                        icon: Icons.calendar_today,
+                        label: 'Reservations',
+                        route: '/reservations',
+                        currentRoute: currentRoute,
+                        collapsed: collapsed,
+                      ),
+                    if (hasPermission('billing.view'))
+                      _NavItem(
+                        icon: Icons.credit_card,
+                        label: 'Billing',
+                        route: '/billing',
+                        currentRoute: currentRoute,
+                        collapsed: collapsed,
+                      ),
+                    if (hasPermission('reports.view'))
+                      _NavItem(
+                        icon: Icons.bar_chart,
+                        label: 'Reports',
+                        route: '/reports',
+                        currentRoute: currentRoute,
+                        collapsed: collapsed,
+                      ),
+                    if (hasPermission('pos.view'))
+                      _NavItem(
+                        icon: Icons.point_of_sale,
+                        label: 'POS Management',
+                        route: '/pos',
+                        currentRoute: currentRoute,
+                        collapsed: collapsed,
+                      ),
+                    if (hasPermission('messages.view'))
+                      _NavItem(
+                        icon: Icons.message,
+                        label: 'Messages',
+                        route: '/messages',
+                        currentRoute: currentRoute,
+                        collapsed: collapsed,
+                      ),
+                    if (hasPermission('settings.view'))
+                      _NavItem(
+                        icon: Icons.settings,
+                        label: 'Settings',
+                        route: '/settings',
+                        currentRoute: currentRoute,
+                        collapsed: collapsed,
+                      ),
+                    if (hasPermission('users.view') || hasPermission('roles.manage'))
+                      const Divider(color: Color.fromRGBO(255, 255, 255, 0.1), height: 20),
+                    if (hasPermission('users.view'))
+                      _NavItem(
+                        icon: Icons.people_outline,
+                        label: 'Users',
+                        route: '/users',
+                        currentRoute: currentRoute,
+                        collapsed: collapsed,
+                      ),
+                    if (hasPermission('roles.manage'))
+                      _NavItem(
+                        icon: Icons.security,
+                        label: 'Roles & Permissions',
+                        route: '/roles',
+                        currentRoute: currentRoute,
+                        collapsed: collapsed,
+                      ),
+                  ],
+                );
+              },
             ),
           ),
           // Sidebar Footer - User Info

@@ -31,6 +31,7 @@ import '../services/guest_service.dart';
 import '../models/guest_model.dart';
 import '../models/room_model.dart';
 import '../widgets/main_layout.dart';
+import '../widgets/permission_guard.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -67,98 +68,152 @@ class AppRouter {
         routes: [
           GoRoute(
             path: '/dashboard',
-            builder: (context, state) => const DashboardScreen(),
+            builder: (context, state) => PermissionGuard(
+              requiredPermission: 'dashboard.view',
+              child: const DashboardScreen(),
+            ),
           ),
           // Guests Routes
           GoRoute(
             path: '/guests',
-            builder: (context, state) => const GuestsListScreen(),
+            builder: (context, state) => PermissionGuard(
+              requiredPermission: 'guests.view',
+              child: const GuestsListScreen(),
+            ),
           ),
           GoRoute(
             path: '/guests/new',
-            builder: (context, state) => const GuestFormScreen(),
+            builder: (context, state) => PermissionGuard(
+              requiredPermission: 'guests.create',
+              child: const GuestFormScreen(),
+            ),
           ),
           GoRoute(
             path: '/guests/:id',
             builder: (context, state) {
               final guestId = int.tryParse(state.pathParameters['id'] ?? '');
-              return GuestFormScreen(guestId: guestId);
+              return PermissionGuard(
+                requiredPermission: 'guests.edit',
+                child: GuestFormScreen(guestId: guestId),
+              );
             },
           ),
           // Rooms Routes
           GoRoute(
             path: '/rooms',
-            builder: (context, state) => const RoomsListScreen(),
+            builder: (context, state) => PermissionGuard(
+              requiredPermission: 'rooms.view',
+              child: const RoomsListScreen(),
+            ),
           ),
           GoRoute(
             path: '/rooms/new',
-            builder: (context, state) => const RoomFormScreen(),
+            builder: (context, state) => PermissionGuard(
+              requiredPermission: 'rooms.create',
+              child: const RoomFormScreen(),
+            ),
           ),
           GoRoute(
             path: '/rooms/:id',
             builder: (context, state) {
               final roomId = int.tryParse(state.pathParameters['id'] ?? '');
-              return RoomFormScreen(roomId: roomId);
+              return PermissionGuard(
+                requiredPermission: 'rooms.edit',
+                child: RoomFormScreen(roomId: roomId),
+              );
             },
           ),
           // Reservations Routes
           GoRoute(
             path: '/reservations',
-            builder: (context, state) => const ReservationsListScreen(),
+            builder: (context, state) => PermissionGuard(
+              requiredPermission: 'reservations.view',
+              child: const ReservationsListScreen(),
+            ),
           ),
           GoRoute(
             path: '/reservations/new',
-            builder: (context, state) => const ReservationFormScreen(),
+            builder: (context, state) => PermissionGuard(
+              requiredPermission: 'reservations.create',
+              child: const ReservationFormScreen(),
+            ),
           ),
           GoRoute(
             path: '/reservations/:id',
             builder: (context, state) {
               final reservationId = int.tryParse(state.pathParameters['id'] ?? '');
-              return ReservationFormScreen(reservationId: reservationId);
+              return PermissionGuard(
+                requiredPermission: 'reservations.edit',
+                child: ReservationFormScreen(reservationId: reservationId),
+              );
             },
           ),
           // POS Routes
           GoRoute(
             path: '/pos',
-            builder: (context, state) => const POSManagementScreen(),
+            builder: (context, state) => PermissionGuard(
+              requiredPermission: 'pos.view',
+              child: const POSManagementScreen(),
+            ),
           ),
           // Billing Routes
           GoRoute(
             path: '/billing',
-            builder: (context, state) => const BillingListScreen(),
+            builder: (context, state) => PermissionGuard(
+              requiredPermission: 'billing.view',
+              child: const BillingListScreen(),
+            ),
           ),
           GoRoute(
             path: '/billing/new',
-            builder: (context, state) => const BillingFormScreen(),
+            builder: (context, state) => PermissionGuard(
+              requiredPermission: 'billing.create',
+              child: const BillingFormScreen(),
+            ),
           ),
           GoRoute(
             path: '/billing/:id',
             builder: (context, state) {
               final billingId = int.parse(state.pathParameters['id']!);
-              return BillingDetailScreen(billingId: billingId);
+              return PermissionGuard(
+                requiredPermission: 'billing.view',
+                child: BillingDetailScreen(billingId: billingId),
+              );
             },
           ),
           GoRoute(
             path: '/billing/:id/edit',
             builder: (context, state) {
               // TODO: Load billing from service and pass to form screen
-              return const BillingFormScreen(billing: null); // Placeholder
+              return PermissionGuard(
+                requiredPermission: 'billing.edit',
+                child: const BillingFormScreen(billing: null), // Placeholder
+              );
             },
           ),
           // Reports Routes
           GoRoute(
             path: '/reports',
-            builder: (context, state) => const ReportsScreen(),
+            builder: (context, state) => PermissionGuard(
+              requiredPermission: 'reports.view',
+              child: const ReportsScreen(),
+            ),
           ),
           // Settings Routes
           GoRoute(
             path: '/settings',
-            builder: (context, state) => const SettingsScreen(),
+            builder: (context, state) => PermissionGuard(
+              requiredPermission: 'settings.view',
+              child: const SettingsScreen(),
+            ),
           ),
           // Messages Routes
           GoRoute(
             path: '/messages',
-            builder: (context, state) => const MessagesListScreen(),
+            builder: (context, state) => PermissionGuard(
+              requiredPermission: 'messages.view',
+              child: const MessagesListScreen(),
+            ),
           ),
           GoRoute(
             path: '/messages/chat',
@@ -168,39 +223,57 @@ class AppRouter {
               final title = state.uri.queryParameters['title'];
               final otherParticipantId = state.uri.queryParameters['otherParticipantId'];
               final otherParticipantName = state.uri.queryParameters['otherParticipantName'] ?? 'Unknown';
-              return ChatScreen(
-                conversationId: conversationId,
-                isGroupChat: isGroupChat,
-                title: title,
-                otherParticipantId: otherParticipantId,
-                otherParticipantName: otherParticipantName,
+              return PermissionGuard(
+                requiredPermission: 'messages.view',
+                child: ChatScreen(
+                  conversationId: conversationId,
+                  isGroupChat: isGroupChat,
+                  title: title,
+                  otherParticipantId: otherParticipantId,
+                  otherParticipantName: otherParticipantName,
+                ),
               );
             },
           ),
           // Roles & Permissions Routes
           GoRoute(
             path: '/roles',
-            builder: (context, state) => const RolesListScreen(),
+            builder: (context, state) => PermissionGuard(
+              requiredPermission: 'roles.manage',
+              child: const RolesListScreen(),
+            ),
           ),
           GoRoute(
             path: '/roles/new',
-            builder: (context, state) => const RoleFormScreen(),
+            builder: (context, state) => PermissionGuard(
+              requiredPermission: 'roles.manage',
+              child: const RoleFormScreen(),
+            ),
           ),
           GoRoute(
             path: '/roles/:id',
             builder: (context, state) {
               final roleId = int.tryParse(state.pathParameters['id'] ?? '');
-              return RoleFormScreen(roleId: roleId);
+              return PermissionGuard(
+                requiredPermission: 'roles.manage',
+                child: RoleFormScreen(roleId: roleId),
+              );
             },
           ),
           // Users Routes
           GoRoute(
             path: '/users',
-            builder: (context, state) => const UsersListScreen(),
+            builder: (context, state) => PermissionGuard(
+              requiredPermission: 'users.view',
+              child: const UsersListScreen(),
+            ),
           ),
           GoRoute(
             path: '/users/new',
-            builder: (context, state) => const UserFormScreen(),
+            builder: (context, state) => PermissionGuard(
+              requiredPermission: 'users.create',
+              child: const UserFormScreen(),
+            ),
           ),
           GoRoute(
             path: '/users/:id',
@@ -208,7 +281,10 @@ class AppRouter {
               // userId can be int or string (Firebase UID)
               final idParam = state.pathParameters['id'] ?? '';
               final userId = int.tryParse(idParam) ?? idParam; // Try int first, fallback to string
-              return UserFormScreen(userId: userId);
+              return PermissionGuard(
+                requiredPermission: 'users.edit',
+                child: UserFormScreen(userId: userId),
+              );
             },
           ),
         ],

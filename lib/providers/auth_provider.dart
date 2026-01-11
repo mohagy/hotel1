@@ -71,6 +71,8 @@ class AuthProvider extends ChangeNotifier {
       _user = userCredential.user;
       _isLoading = false;
       notifyListeners();
+      
+      // Note: Permission loading is handled by PermissionProvider via auth state changes
       return true;
     } on FirebaseAuthException catch (e) {
       _error = e.message ?? 'Authentication failed';

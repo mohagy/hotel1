@@ -15,6 +15,7 @@ import 'providers/guest_provider.dart';
 import 'providers/room_provider.dart';
 import 'providers/reservation_provider.dart';
 import 'providers/sync_provider.dart';
+import 'providers/permission_provider.dart';
 import 'services/fcm_service.dart';
 import 'services/offline_storage_service.dart';
 import 'services/sync_service.dart';
@@ -98,6 +99,7 @@ class HotelManagementApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => PermissionProvider()),
         ChangeNotifierProvider(create: (_) => GuestProvider()),
         ChangeNotifierProvider(create: (_) => RoomProvider()),
         ChangeNotifierProvider(create: (_) => ReservationProvider()),
