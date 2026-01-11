@@ -124,9 +124,6 @@ const defaultRolesPermissions = {
   ],
   'Cashier': [
     'dashboard.view',
-    'guests.view',
-    'reservations.view',
-    'billing.view', 'billing.create', 'billing.payment',
     'pos.view', 'pos.sales',
     'messages.view',
   ],
