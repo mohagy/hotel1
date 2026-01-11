@@ -97,6 +97,8 @@ class PermissionCheckerService {
           ? roleName[0].toUpperCase() + roleName.substring(1).toLowerCase()
           : roleName;
 
+      debugPrint('PermissionChecker: Looking for role "$capitalizedRoleName" (original: "$roleName")');
+
       // Find role by name (case-sensitive, so we capitalize it)
       final roleQuery = await _firestore
           .collection('roles')
@@ -105,9 +107,11 @@ class PermissionCheckerService {
           .get();
 
       if (roleQuery.docs.isEmpty) {
-        debugPrint('Role not found: $roleName');
+        debugPrint('PermissionChecker: Role not found: "$capitalizedRoleName" (original: "$roleName")');
         return {};
       }
+
+      debugPrint('PermissionChecker: Found role "${roleQuery.docs.first.data()['name']}" with ID: ${roleQuery.docs.first.id}');
 
       final roleDoc = roleQuery.docs.first;
       final roleData = roleDoc.data();
@@ -160,6 +164,7 @@ class PermissionCheckerService {
 
       // Cache permissions
       _permissionsCache[userId] = permissionKeys;
+      debugPrint('PermissionChecker: Loaded ${permissionKeys.length} permissions: ${permissionKeys.toList()}');
       return permissionKeys;
     } catch (e) {
       debugPrint('Error fetching user permissions: $e');

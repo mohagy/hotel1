@@ -40,8 +40,10 @@ class PermissionProvider extends ChangeNotifier {
       if (_currentUser != null) {
         final userId = _currentUser!.userId?.toString() ?? _auth.currentUser?.uid;
         _permissions = await _permissionChecker.getUserPermissions(userId);
+        debugPrint('PermissionProvider: Loaded permissions for user ${_currentUser!.username} (role: ${_currentUser!.role}): ${_permissions.toList()}');
       } else {
         _permissions = {};
+        debugPrint('PermissionProvider: No current user found');
       }
 
       _isLoading = false;
