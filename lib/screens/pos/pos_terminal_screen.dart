@@ -6,6 +6,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:html' as html;
 import '../../models/product_model.dart';
 import '../../models/order_model.dart';
 import '../../models/reservation_model.dart';
@@ -2680,6 +2681,344 @@ class _PaymentDialogState extends State<_PaymentDialog> {
           child: const Text('Process Payment'),
         ),
       ],
+    );
+  }
+}
+
+// Receipt Dialog
+class _ReceiptDialog extends StatelessWidget {
+  final OrderModel order;
+  final String customerName;
+  final double? amountPaid;
+  final String? reservationNumber;
+
+  const _ReceiptDialog({
+    required this.order,
+    required this.customerName,
+    this.amountPaid,
+    this.reservationNumber,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final change = (amountPaid ?? order.total) - order.total;
+    final paymentMethodName = order.paymentMethod
+        .split('_')
+        .map((word) => word[0].toUpperCase() + word.substring(1))
+        .join(' ');
+
+    return Dialog(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 500),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppColors.primary, AppColors.primaryDark],
+                ),
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    'RECEIPT',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    Formatters.dateTime(order.createdAt ?? DateTime.now()),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.white70,
+                    ),
+                  ),
+                  if (order.billNumber != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Bill #: ${order.billNumber}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ],
+                  if (reservationNumber != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Reservation #: $reservationNumber',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            // Receipt Content
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Customer Info
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            order.isRestaurantMode ? 'GUEST:' : 'CUSTOMER:',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          Text(
+                            customerName,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          if (order.tableNo != null) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              'Table: ${order.tableNo}',
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                          ],
+                          if (order.waiterName != null) ...[
+                            Text(
+                              'Waiter: ${order.waiterName}',
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const Divider(),
+                    const SizedBox(height: 16),
+                    // Items
+                    const Text(
+                      'ITEMS:',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ...order.items!.map((item) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item.productName ?? 'Item',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                if (item.quantity > 1)
+                                  Text(
+                                    'Qty: ${item.quantity} × ${Formatters.currency(item.price)}',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          if (item.discountAmount > 0)
+                            Expanded(
+                              child: Text(
+                                '-${Formatters.currency(item.discountAmount)}',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.statusError,
+                                ),
+                                textAlign: TextAlign.right,
+                              ),
+                            ),
+                          Expanded(
+                            child: Text(
+                              Formatters.currency(item.totalAmount),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              textAlign: TextAlign.right,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )).toList(),
+                    const Divider(),
+                    const SizedBox(height: 16),
+                    // Totals
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Subtotal:', style: TextStyle(fontSize: 14)),
+                        Text(
+                          Formatters.currency(order.subtotal),
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ],
+                    ),
+                    if (order.discountTotal > 0) ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Discount:',
+                            style: TextStyle(fontSize: 14, color: AppColors.statusError),
+                          ),
+                          Text(
+                            '-${Formatters.currency(order.discountTotal)}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: AppColors.statusError,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'TOTAL:',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          Formatters.currency(order.total),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Payment (${paymentMethodName}):',
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        Text(
+                          Formatters.currency(amountPaid ?? order.total),
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ],
+                    ),
+                    if (change > 0) ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Change:',
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                          ),
+                          Text(
+                            Formatters.currency(change),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    if (order.comment != null && order.comment!.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      const Divider(),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Note: ${order.comment}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    const Divider(),
+                    const SizedBox(height: 16),
+                    const Center(
+                      child: Text(
+                        'Thank you for your business!',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // Actions
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(color: Colors.grey.shade300),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Close'),
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      // Print receipt
+                      html.window.print();
+                    },
+                    icon: const Icon(Icons.print),
+                    label: const Text('Print'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
