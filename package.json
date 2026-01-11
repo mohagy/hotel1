@@ -1,0 +1,12 @@
+{
+  "name": "flutter-hotel-permissions-init",
+  "version": "1.0.0",
+  "description": "Initialize permissions and roles in Firestore",
+  "main": "init_permissions.js",
+  "scripts": {
+    "init-permissions": "node init_permissions.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.7.0"
+  }
+}
