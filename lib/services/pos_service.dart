@@ -50,58 +50,70 @@ class POSService extends ApiService {
   /// Get restaurant menu items (with offline support)
   Future<List<ProductModel>> getRestaurantMenuItems({int? categoryId}) async {
     try {
-      if (await _isOnline()) {
-        try {
-          final response = await get(
-            '${ApiConfig.restaurantEndpoint}get-menu.php',
-            queryParameters: categoryId != null ? {'category_id': categoryId} : null,
-          );
-          
-          List<ProductModel> items = [];
-          if (response.data is Map && response.data['success'] == true) {
-            if (response.data['items'] != null) {
-              items = ProductModel.fromJsonList(response.data['items'] as List);
-            } else if (response.data['menu'] != null) {
-              items = ProductModel.fromJsonList(response.data['menu'] as List);
-            } else if (response.data['data'] != null) {
-              items = ProductModel.fromJsonList(response.data['data'] as List);
-            }
-          } else if (response.data is List) {
-            items = ProductModel.fromJsonList(response.data as List);
-          }
-          
-          if (items.isNotEmpty) {
-            await OfflineStorageService.saveProducts(items);
-          }
-          
-          return items;
-        } catch (e) {
-          debugPrint('API fetch failed, using local storage: $e');
-        }
+      // Use Firestore to get restaurant products (filter by is_restaurant_item == 1)
+      final products = await _productService.getProducts(categoryId: categoryId);
+      
+      // Filter for restaurant items only
+      final restaurantProducts = products.where((p) => p.isRestaurantItem == true).toList();
+      
+      // Also save to offline storage for offline support
+      if (restaurantProducts.isNotEmpty) {
+        await OfflineStorageService.saveProducts(restaurantProducts);
       }
       
-      // Filter by category if needed (local storage)
-      final allProducts = OfflineStorageService.getProducts();
-      if (categoryId != null) {
-        return allProducts.where((p) => p.categoryId == categoryId).toList();
-      }
-      return allProducts;
+      return restaurantProducts;
     } catch (e) {
-      return OfflineStorageService.getProducts();
+      debugPrint('Firestore fetch failed, using local storage: $e');
+      // Fallback to local storage
+      final allProducts = OfflineStorageService.getProducts();
+      final restaurantProducts = allProducts.where((p) => p.isRestaurantItem == true).toList();
+      if (categoryId != null) {
+        return restaurantProducts.where((p) => p.categoryId == categoryId).toList();
+      }
+      return restaurantProducts;
     }
   }
 
   /// Get categories (using Firestore)
   Future<List<Map<String, dynamic>>> getCategories({String? mode}) async {
     try {
-      final categories = await _categoryService.getCategories();
+      // Get all categories
+      final allCategories = await _categoryService.getCategories();
       
-      // Also save to offline storage for offline support
-      if (categories.isNotEmpty) {
-        await OfflineStorageService.saveCategories(categories, mode: mode);
+      // If mode is specified, filter categories based on products in that mode
+      if (mode != null) {
+        List<ProductModel> products;
+        if (mode == 'restaurant') {
+          products = await getRestaurantMenuItems();
+        } else {
+          products = await getRetailProducts();
+        }
+        
+        // Get unique category IDs from products
+        final categoryIds = products
+            .where((p) => p.categoryId != null)
+            .map((p) => p.categoryId!)
+            .toSet();
+        
+        // Filter categories to only include those with products in this mode
+        final filteredCategories = allCategories
+            .where((cat) => categoryIds.contains(cat['id']))
+            .toList();
+        
+        // Also save to offline storage for offline support
+        if (filteredCategories.isNotEmpty) {
+          await OfflineStorageService.saveCategories(filteredCategories, mode: mode);
+        }
+        
+        return filteredCategories;
       }
       
-      return categories;
+      // No mode specified, return all categories
+      if (allCategories.isNotEmpty) {
+        await OfflineStorageService.saveCategories(allCategories, mode: mode);
+      }
+      
+      return allCategories;
     } catch (e) {
       debugPrint('Firestore fetch failed, using local storage: $e');
       // Fallback to local storage
