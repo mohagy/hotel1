@@ -270,18 +270,40 @@ class _POSTerminalScreenState extends State<POSTerminalScreen> {
         );
         
         if (success && mounted) {
+          // Create order for receipt
+          final order = OrderModel(
+            subtotal: _subtotal,
+            discountTotal: _discountTotal + _subTotalDiscount,
+            total: _total,
+            status: 'completed',
+            paymentMethod: 'cash',
+            businessMode: _currentMode,
+            items: List.from(_cart),
+            tableNo: _tableNo,
+            waiterName: _waiterName,
+            comment: _orderNote,
+            createdAt: DateTime.now(),
+          );
+          
+          // Show receipt dialog
+          if (mounted) {
+            await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => _ReceiptDialog(
+                order: order,
+                customerName: _currentCustomerName ?? _selectedReservation?.guestName ?? 'Guest',
+                reservationNumber: _selectedReservation?.reservationNumber,
+              ),
+            );
+          }
+          
           setState(() {
             _cart = [];
             _selectedReservation = null;
             _orderNote = null;
           });
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Payment processed successfully'),
-                backgroundColor: AppColors.statusSuccess,
-              ),
-            );
             _loadData(); // Refresh reservations
           }
         }
@@ -307,6 +329,7 @@ class _POSTerminalScreenState extends State<POSTerminalScreen> {
     if (paymentResult == null) return;
 
     final paymentMethod = paymentResult['payment_method'] as String? ?? 'cash';
+    final amountPaid = paymentResult['amount_paid'] as double? ?? _total;
     
     // Regular order processing
     final order = OrderModel(
@@ -316,29 +339,33 @@ class _POSTerminalScreenState extends State<POSTerminalScreen> {
       status: 'completed',
       paymentMethod: paymentMethod,
       businessMode: _currentMode,
-      items: _cart,
+      items: List.from(_cart),
       tableNo: _tableNo,
       waiterName: _waiterName,
       comment: _orderNote,
+      createdAt: DateTime.now(),
     );
 
     try {
       final success = await _posService.saveOrder(order);
       if (success && mounted) {
+        // Show receipt dialog
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => _ReceiptDialog(
+            order: order,
+            customerName: _currentCustomerName ?? 'Walk-in Customer',
+            amountPaid: amountPaid,
+          ),
+        );
+        
         setState(() {
           _cart = [];
           _discountTotal = 0.0;
           _subTotalDiscount = 0.0;
           _orderNote = null;
         });
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Order saved successfully'),
-              backgroundColor: AppColors.statusSuccess,
-            ),
-          );
-        }
       }
     } catch (e) {
       if (mounted) {
