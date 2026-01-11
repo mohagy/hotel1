@@ -26,6 +26,67 @@ class ReservationService extends ApiService {
   /// Get all reservations (with offline support)
   Future<List<ReservationModel>> getReservations({Map<String, dynamic>? filters}) async {
     try {
+      // Try Firestore first (where our data is stored)
+      try {
+        final snapshot = await _firestore
+            .collection('reservations')
+            .orderBy('check_in_date', descending: true)
+            .limit(500)
+            .get();
+
+        final reservations = <ReservationModel>[];
+        
+        for (var doc in snapshot.docs) {
+          try {
+            final resData = _docToReservationJson(doc);
+            
+            // Get guest data
+            final guestId = resData['guest_id'];
+            if (guestId != null) {
+              final guestDoc = await _firestore.collection('guests').doc(guestId.toString()).get();
+              if (guestDoc.exists) {
+                final guestData = guestDoc.data() as Map<String, dynamic>? ?? {};
+                resData['guest_name'] = '${guestData['first_name'] ?? ''} ${guestData['last_name'] ?? ''}'.trim();
+                resData['guest_email'] = guestData['email'];
+                resData['guest_phone'] = guestData['phone'];
+              }
+            }
+            
+            // Get room data
+            final roomId = resData['room_id'];
+            if (roomId != null) {
+              final roomDoc = await _firestore.collection('rooms').doc(roomId.toString()).get();
+              if (roomDoc.exists) {
+                final roomData = roomDoc.data() as Map<String, dynamic>? ?? {};
+                resData['room_number'] = roomData['room_number'];
+                resData['room_type'] = roomData['room_type'];
+              }
+            }
+            
+            // Generate reservation_number if not present
+            if (!resData.containsKey('reservation_number') && resData['reservation_id'] != null) {
+              final resId = resData['reservation_id'].toString();
+              resData['reservation_number'] = 'RES-${resId.padLeft(4, '0')}';
+            }
+            
+            final reservation = ReservationModel.fromJson(resData);
+            reservations.add(reservation);
+          } catch (e) {
+            debugPrint('Error processing reservation ${doc.id}: $e');
+          }
+        }
+        
+        if (reservations.isNotEmpty) {
+          await OfflineStorageService.saveReservations(reservations);
+          await OfflineStorageService.saveLastSync('reservations', DateTime.now());
+        }
+        
+        return reservations;
+      } catch (e) {
+        debugPrint('Firestore fetch failed, trying PHP API: $e');
+      }
+      
+      // Fallback to PHP API
       if (await _isOnline()) {
         try {
           final response = await get(
