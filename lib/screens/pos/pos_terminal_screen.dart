@@ -2736,8 +2736,9 @@ class _ReceiptDialog extends StatelessWidget {
         .join(' ');
 
     return Dialog(
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
+      child: SizedBox(
+        width: 500,
+        height: 600,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
