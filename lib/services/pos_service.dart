@@ -85,12 +85,18 @@ class POSService extends ApiService {
       final allCategories = await _categoryService.getCategories();
       
       // If mode is specified, filter categories based on products in that mode
-      if (mode != null) {
+      if (mode != null && mode != 'reservation') {
         List<ProductModel> products;
         if (mode == 'restaurant') {
           products = await getRestaurantMenuItems();
-        } else {
+          debugPrint('POS Service: Restaurant mode - Found ${products.length} restaurant products');
+        } else if (mode == 'retail') {
           products = await getRetailProducts();
+          debugPrint('POS Service: Retail mode - Found ${products.length} retail products');
+        } else {
+          // Unknown mode, return empty
+          debugPrint('POS Service: Unknown mode "$mode", returning empty categories');
+          return [];
         }
         
         // Get unique category IDs from products
@@ -99,10 +105,14 @@ class POSService extends ApiService {
             .map((p) => p.categoryId!)
             .toSet();
         
+        debugPrint('POS Service: Mode "$mode" - Category IDs from products: $categoryIds');
+        
         // Filter categories to only include those with products in this mode
         final filteredCategories = allCategories
             .where((cat) => categoryIds.contains(cat['id']))
             .toList();
+        
+        debugPrint('POS Service: Mode "$mode" - Filtered to ${filteredCategories.length} categories (from ${allCategories.length} total)');
         
         // Also save to offline storage for offline support
         if (filteredCategories.isNotEmpty) {
@@ -110,6 +120,12 @@ class POSService extends ApiService {
         }
         
         return filteredCategories;
+      }
+      
+      // No mode specified or reservation mode, return all categories (or empty for reservation)
+      if (mode == 'reservation') {
+        debugPrint('POS Service: Reservation mode - returning empty categories');
+        return [];
       }
       
       // No mode specified, return all categories
@@ -120,7 +136,10 @@ class POSService extends ApiService {
       return allCategories;
     } catch (e) {
       debugPrint('Firestore fetch failed, using local storage: $e');
-      // Fallback to local storage
+      // Fallback to local storage - but only if mode is not reservation
+      if (mode == 'reservation') {
+        return [];
+      }
       return OfflineStorageService.getCategories(mode: mode);
     }
   }
