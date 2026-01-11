@@ -474,7 +474,7 @@ class _POSTerminalScreenState extends State<POSTerminalScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Order Note'),
+        title: Text(_currentMode == AppConfig.posModeRestaurant ? 'Kitchen Note' : 'Order Note'),
         content: TextField(
           controller: noteController,
           decoration: const InputDecoration(
@@ -831,9 +831,9 @@ class _POSTerminalScreenState extends State<POSTerminalScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'PRODUCT',
-                  style: TextStyle(
+                Text(
+                  _currentMode == AppConfig.posModeRestaurant ? 'MENU ITEM' : 'PRODUCT',
+                  style: const TextStyle(
                     fontSize: 11,
                     color: Color(0xFF667eea),
                     fontWeight: FontWeight.w600,
@@ -843,7 +843,7 @@ class _POSTerminalScreenState extends State<POSTerminalScreen> {
                 const SizedBox(height: 4),
                 TextFormField(
                   decoration: InputDecoration(
-                    hintText: 'Select Product',
+                    hintText: _currentMode == AppConfig.posModeRestaurant ? 'Select Menu Item' : 'Select Product',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(6),
                       borderSide: const BorderSide(color: Color(0xFFe0e0e0), width: 2),
@@ -912,9 +912,9 @@ class _POSTerminalScreenState extends State<POSTerminalScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'SALESPERSON',
-                  style: TextStyle(
+                Text(
+                  _currentMode == AppConfig.posModeRestaurant ? 'WAITER' : 'SALESPERSON',
+                  style: const TextStyle(
                     fontSize: 11,
                     color: Color(0xFF667eea),
                     fontWeight: FontWeight.w600,
