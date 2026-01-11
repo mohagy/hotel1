@@ -30,20 +30,24 @@ class POSService extends ApiService {
     try {
       final products = await _productService.getProducts(categoryId: categoryId);
       
+      // Filter for retail items only (is_restaurant_item == false)
+      final retailProducts = products.where((p) => p.isRestaurantItem == false).toList();
+      
       // Also save to offline storage for offline support
-      if (products.isNotEmpty) {
-        await OfflineStorageService.saveProducts(products);
+      if (retailProducts.isNotEmpty) {
+        await OfflineStorageService.saveProducts(retailProducts);
       }
       
-      return products;
+      return retailProducts;
     } catch (e) {
       debugPrint('Firestore fetch failed, using local storage: $e');
       // Fallback to local storage
       final allProducts = OfflineStorageService.getProducts();
+      final retailProducts = allProducts.where((p) => p.isRestaurantItem == false).toList();
       if (categoryId != null) {
-        return allProducts.where((p) => p.categoryId == categoryId).toList();
+        return retailProducts.where((p) => p.categoryId == categoryId).toList();
       }
-      return allProducts;
+      return retailProducts;
     }
   }
 
