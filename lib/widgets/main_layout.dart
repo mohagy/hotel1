@@ -276,9 +276,13 @@ class _Sidebar extends StatelessWidget {
             ),
           ),
           // Sidebar Footer - User Info
-          Consumer<AuthProvider>(
-            builder: (context, authProvider, child) {
+          Consumer2<AuthProvider, PermissionProvider>(
+            builder: (context, authProvider, permissionProvider, child) {
               final user = authProvider.user;
+              final userRole = permissionProvider.currentUser?.role ?? 'User';
+              final roleDisplay = userRole.isNotEmpty 
+                  ? userRole[0].toUpperCase() + userRole.substring(1).toLowerCase()
+                  : 'User';
               return Container(
                 padding: const EdgeInsets.all(15),
                 decoration: const BoxDecoration(
@@ -322,9 +326,9 @@ class _Sidebar extends StatelessWidget {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              const Text(
-                                'Admin',
-                                style: TextStyle(
+                              Text(
+                                roleDisplay,
+                                style: const TextStyle(
                                   color: Color.fromRGBO(255, 255, 255, 0.7),
                                   fontSize: 11,
                                 ),
