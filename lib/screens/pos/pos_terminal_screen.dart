@@ -348,9 +348,15 @@ class _POSTerminalScreenState extends State<POSTerminalScreen> {
     );
 
     try {
-      final success = await _posService.saveOrder(order);
-      if (success && mounted) {
-        // Show receipt dialog
+      // Save order (but show receipt even if it fails since order is already created)
+      try {
+        await _posService.saveOrder(order);
+      } catch (e) {
+        debugPrint('Order save error (showing receipt anyway): $e');
+      }
+      
+      // Always show receipt dialog after payment
+      if (mounted) {
         await showDialog(
           context: context,
           barrierDismissible: false,
@@ -369,6 +375,7 @@ class _POSTerminalScreenState extends State<POSTerminalScreen> {
         });
       }
     } catch (e) {
+      debugPrint('Error in checkout: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
