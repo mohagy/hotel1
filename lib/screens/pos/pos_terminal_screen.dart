@@ -634,39 +634,50 @@ class _POSTerminalScreenState extends State<POSTerminalScreen> {
                   onPressed: () => _showModeSwitchDialog(),
                   color: Colors.red,
                 ),
-                _MenuButton(
-                  label: 'Register',
-                  onPressed: () {},
-                  color: Colors.white,
-                ),
+                if (_currentMode != AppConfig.posModeRestaurant)
+                  _MenuButton(
+                    label: 'Register',
+                    onPressed: () {},
+                    color: Colors.white,
+                  ),
                 if (_currentMode == AppConfig.posModeReservation)
                   _MenuButton(
                     label: 'Reservation',
                     onPressed: () {},
                     color: Colors.white,
                   ),
+                if (_currentMode != AppConfig.posModeRestaurant)
+                  _MenuButton(
+                    label: 'Customer',
+                    onPressed: () {},
+                    color: Colors.white,
+                  ),
+                if (_currentMode != AppConfig.posModeRestaurant)
+                  _MenuButton(
+                    label: 'Credits',
+                    onPressed: () {},
+                    color: Colors.white,
+                  ),
+                if (_currentMode != AppConfig.posModeRestaurant)
+                  _MenuButton(
+                    label: 'Reports',
+                    onPressed: () {},
+                    color: Colors.white,
+                  ),
+                if (_currentMode != AppConfig.posModeRestaurant)
+                  _MenuButton(
+                    label: 'History',
+                    onPressed: () {},
+                    color: Colors.white,
+                  ),
+                if (_currentMode == AppConfig.posModeRestaurant)
+                  _MenuButton(
+                    label: 'Table',
+                    onPressed: () {},
+                    color: Colors.white,
+                  ),
                 _MenuButton(
-                  label: 'Customer',
-                  onPressed: () {},
-                  color: Colors.white,
-                ),
-                _MenuButton(
-                  label: 'Credits',
-                  onPressed: () {},
-                  color: Colors.white,
-                ),
-                _MenuButton(
-                  label: 'Reports',
-                  onPressed: () {},
-                  color: Colors.white,
-                ),
-                _MenuButton(
-                  label: 'History',
-                  onPressed: () {},
-                  color: Colors.white,
-                ),
-                _MenuButton(
-                  label: 'Comment',
+                  label: _currentMode == AppConfig.posModeRestaurant ? 'Kitchen Note' : 'Comment',
                   onPressed: () {},
                   color: Colors.white,
                 ),
@@ -787,9 +798,9 @@ class _POSTerminalScreenState extends State<POSTerminalScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'CUSTOMER',
-                  style: TextStyle(
+                Text(
+                  _currentMode == AppConfig.posModeRestaurant ? 'GUEST' : 'CUSTOMER',
+                  style: const TextStyle(
                     fontSize: 11,
                     color: Color(0xFF667eea),
                     fontWeight: FontWeight.w600,
@@ -1322,7 +1333,7 @@ class _POSTerminalScreenState extends State<POSTerminalScreen> {
                 color: const Color(0xFF56ab2f),
               ),
               _ActionButton(
-                label: 'Hold Items',
+                label: _currentMode == AppConfig.posModeRestaurant ? 'Send to Kitchen' : 'Hold Items',
                 onPressed: _holdOrder,
                 color: const Color(0xFFeb3349),
               ),
@@ -1331,30 +1342,32 @@ class _POSTerminalScreenState extends State<POSTerminalScreen> {
                 onPressed: _applySubTotalDiscount,
                 color: const Color(0xFF667eea),
               ),
-              _ActionButton(
-                label: 'Price Check',
-                onPressed: _showPriceCheck,
-                color: const Color(0xFF3498db),
-              ),
-              _ActionButton(
-                label: 'Quotation',
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Quotation feature coming soon'),
-                      backgroundColor: AppColors.statusInfo,
-                    ),
-                  );
-                },
-                color: const Color(0xFFf1c40f),
-              ),
+              if (_currentMode != AppConfig.posModeRestaurant) ...[
+                _ActionButton(
+                  label: 'Price Check',
+                  onPressed: _showPriceCheck,
+                  color: const Color(0xFF3498db),
+                ),
+                _ActionButton(
+                  label: 'Quotation',
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Quotation feature coming soon'),
+                        backgroundColor: AppColors.statusInfo,
+                      ),
+                    );
+                  },
+                  color: const Color(0xFFf1c40f),
+                ),
+              ],
               _ActionButton(
                 label: 'Checkout',
                 onPressed: _checkout,
                 color: const Color(0xFF2c3e50),
               ),
               _ActionButton(
-                label: 'Order Note',
+                label: _currentMode == AppConfig.posModeRestaurant ? 'Kitchen Note' : 'Order Note',
                 onPressed: _showOrderNote,
                 color: const Color(0xFF95a5a6),
               ),
