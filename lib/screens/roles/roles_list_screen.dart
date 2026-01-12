@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../models/role_model.dart';
 import '../../models/permission_model.dart';
 import '../../services/role_service.dart';
@@ -11,6 +12,7 @@ import '../../services/permission_service.dart';
 import '../../core/theme/colors.dart';
 import '../../core/widgets/common_widgets.dart';
 import '../../services/permissions_init_service.dart';
+import '../../providers/permission_provider.dart';
 import 'role_form_screen.dart';
 
 class RolesListScreen extends StatefulWidget {
@@ -49,10 +51,17 @@ class _RolesListScreenState extends State<RolesListScreen> {
     try {
       await _initService.initializeAll();
       if (mounted) {
+        // Clear permission cache and reload permissions for current user
+        // This ensures sidebar updates immediately
+        final permissionProvider = Provider.of<PermissionProvider>(context, listen: false);
+        permissionProvider.clearCache();
+        await permissionProvider.loadPermissions();
+        
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Permissions and roles initialized successfully'),
+            content: Text('Permissions and roles initialized successfully. Sidebar updated.'),
             backgroundColor: AppColors.statusSuccess,
+            duration: Duration(seconds: 2),
           ),
         );
         _loadData();
@@ -193,10 +202,18 @@ class _RolesListScreenState extends State<RolesListScreen> {
               await _roleService.updateRolePermissions(role.roleId!, permissionIds);
               if (mounted) {
                 Navigator.pop(context);
+                
+                // Clear permission cache and reload permissions for current user
+                // This ensures sidebar updates immediately without page refresh
+                final permissionProvider = Provider.of<PermissionProvider>(context, listen: false);
+                permissionProvider.clearCache();
+                await permissionProvider.loadPermissions();
+                
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Permissions updated successfully'),
+                    content: Text('Permissions updated successfully. Sidebar updated.'),
                     backgroundColor: AppColors.statusSuccess,
+                    duration: Duration(seconds: 2),
                   ),
                 );
                 _loadData();

@@ -86,5 +86,11 @@ class PermissionProvider extends ChangeNotifier {
     _permissionChecker.clearCache();
     notifyListeners();
   }
+
+  /// Clear cache and reload permissions (useful after role/permission changes)
+  Future<void> clearCache() async {
+    _permissionChecker.clearCache();
+    await loadPermissions();
+  }
 }
 
