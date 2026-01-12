@@ -26,6 +26,8 @@ import '../screens/settings/settings_screen.dart';
 import '../screens/messages/messages_list_screen.dart';
 import '../screens/messages/chat_screen.dart';
 import '../screens/rooms/room_form_screen.dart';
+import '../screens/landing/landing_page_screen.dart';
+import '../screens/landing/landing_page_management_screen.dart';
 import '../services/room_service.dart';
 import '../services/guest_service.dart';
 import '../models/guest_model.dart';
@@ -44,6 +46,11 @@ class AppRouter {
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginScreen(),
+      ),
+      // Public Landing Page (no authentication required)
+      GoRoute(
+        path: '/landing',
+        builder: (context, state) => const LandingPageScreen(),
       ),
       // POS Terminal - Standalone (outside MainLayout)
       GoRoute(
@@ -205,6 +212,14 @@ class AppRouter {
             builder: (context, state) => PermissionGuard(
               requiredPermission: 'settings.view',
               child: const SettingsScreen(),
+            ),
+          ),
+          // Landing Page Routes
+          GoRoute(
+            path: '/landing-page',
+            builder: (context, state) => PermissionGuard(
+              requiredPermission: 'settings.view',
+              child: const LandingPageManagementScreen(),
             ),
           ),
           // Messages Routes

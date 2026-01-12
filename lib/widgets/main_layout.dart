@@ -252,6 +252,14 @@ class _Sidebar extends StatelessWidget {
                         currentRoute: currentRoute,
                         collapsed: collapsed,
                       ),
+                    if (hasPermission('settings.view'))
+                      _NavItem(
+                        icon: Icons.home,
+                        label: 'Landing Page',
+                        route: '/landing-page',
+                        currentRoute: currentRoute,
+                        collapsed: collapsed,
+                      ),
                     if (hasPermission('users.view') || hasPermission('roles.manage'))
                       const Divider(color: Color.fromRGBO(255, 255, 255, 0.1), height: 20),
                     if (hasPermission('users.view'))
