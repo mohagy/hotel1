@@ -35,12 +35,17 @@
     html, body {
       margin: 0;
       padding: 0;
-      height: 100%;
-      overflow-y: auto;
-      overflow-x: hidden;
+      overflow: auto;
+      min-height: 100vh;
     }
-    #app {
-      min-height: 100%;
+    body {
+      position: relative;
+    }
+    flt-glass-pane {
+      overflow: auto !important;
+    }
+    flt-scene-host {
+      overflow: auto !important;
     }
   </style>
 </head>
