@@ -95,11 +95,15 @@ class LandingPageService extends ApiService {
   }
 
   /// Upload landing page image
-  Future<String?> uploadImage(File imageFile, String imageType) async {
+  /// Note: For web compatibility, this method accepts a file path or URL
+  /// In production, implement Firebase Storage upload with proper web/mobile handling
+  Future<String?> uploadImage(dynamic imageFile, String imageType) async {
     try {
       // This would typically upload to Firebase Storage
+      // For web, use html.File or Uint8List
+      // For mobile, use dart:io.File
       // For now, return a placeholder URL
-      // In production, implement Firebase Storage upload
+      // In production, implement Firebase Storage upload with conditional imports
       return null;
     } catch (e) {
       debugPrint('Error uploading image: $e');
