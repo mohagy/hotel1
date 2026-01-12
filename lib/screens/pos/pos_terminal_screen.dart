@@ -18,6 +18,7 @@ import '../../core/utils/formatters.dart';
 import '../../config/app_config.dart';
 import '../../providers/auth_provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import '../../utils/print_helper.dart';
 
 class POSTerminalScreen extends StatefulWidget {
   final String? initialMode;
@@ -2734,20 +2735,13 @@ class _ReceiptDialog extends StatelessWidget {
   });
 
   void _printReceipt() {
-    if (kIsWeb) {
-      // Print functionality - using JS interop for web
-      // For web builds, this will work. For other platforms, it's a no-op.
-      try {
-        // Print receipt (web only)
-        if (kIsWeb) {
-          // For web, use JavaScript to trigger print
-          // In a real implementation, you might use package:universal_html or similar
-          debugPrint('Print functionality - web implementation needed');
-        }
-      } catch (e) {
-        // If printing is not available, skip
-        debugPrint('Print not available: $e');
-      }
+    try {
+      // Use the print helper which handles platform differences via conditional imports
+      printDocument();
+    } catch (e) {
+      debugPrint('Print error: $e');
+      // Show a snackbar to inform the user if print fails
+      // Note: This is handled by the print helper on web
     }
   }
 
@@ -3056,12 +3050,7 @@ class _ReceiptDialog extends StatelessWidget {
                   const SizedBox(width: 12),
                   ElevatedButton.icon(
                     onPressed: () {
-                      // Print receipt (web only)
-                      if (kIsWeb) {
-                        // For web, use JavaScript to trigger print
-                        // In a real implementation, you might use package:universal_html or similar
-                        debugPrint('Print functionality - web implementation needed');
-                      }
+                      _printReceipt();
                     },
                     icon: const Icon(Icons.print),
                     label: const Text('Print'),
