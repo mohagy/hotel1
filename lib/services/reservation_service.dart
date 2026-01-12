@@ -34,33 +34,99 @@ class ReservationService extends ApiService {
             .limit(500)
             .get();
 
-        final reservations = <ReservationModel>[];
-        
+        if (snapshot.docs.isEmpty) {
+          return [];
+        }
+
+        // Collect all unique guest IDs and room IDs for batch fetching
+        final guestIds = <String>{};
+        final roomIds = <String>{};
+        final reservationDataList = <Map<String, dynamic>>[];
+
         for (var doc in snapshot.docs) {
           try {
             final resData = _docToReservationJson(doc);
+            reservationDataList.add(resData);
             
-            // Get guest data
             final guestId = resData['guest_id'];
             if (guestId != null) {
-              final guestDoc = await _firestore.collection('guests').doc(guestId.toString()).get();
-              if (guestDoc.exists) {
-                final guestData = guestDoc.data() as Map<String, dynamic>? ?? {};
-                resData['guest_name'] = '${guestData['first_name'] ?? ''} ${guestData['last_name'] ?? ''}'.trim();
-                resData['guest_email'] = guestData['email'];
-                resData['guest_phone'] = guestData['phone'];
-              }
+              guestIds.add(guestId.toString());
             }
             
-            // Get room data
             final roomId = resData['room_id'];
             if (roomId != null) {
-              final roomDoc = await _firestore.collection('rooms').doc(roomId.toString()).get();
-              if (roomDoc.exists) {
-                final roomData = roomDoc.data() as Map<String, dynamic>? ?? {};
-                resData['room_number'] = roomData['room_number'];
-                resData['room_type'] = roomData['room_type'];
-              }
+              roomIds.add(roomId.toString());
+            }
+          } catch (e) {
+            debugPrint('Error processing reservation ${doc.id}: $e');
+          }
+        }
+
+        // Batch fetch all guests and rooms in parallel
+        final futures = <Future>[];
+        final guestMap = <String, Map<String, dynamic>>{};
+        final roomMap = <String, Map<String, dynamic>>{};
+
+        // Batch fetch guests (Firestore allows up to 10 items in whereIn, so we need to chunk)
+        if (guestIds.isNotEmpty) {
+          final guestIdList = guestIds.toList();
+          for (var i = 0; i < guestIdList.length; i += 10) {
+            final chunk = guestIdList.skip(i).take(10).toList();
+            futures.add(
+              _firestore.collection('guests')
+                  .where(FieldPath.documentId, whereIn: chunk)
+                  .get()
+                  .then((snapshot) {
+                    for (var doc in snapshot.docs) {
+                      final data = doc.data() as Map<String, dynamic>? ?? {};
+                      guestMap[doc.id] = data;
+                    }
+                  })
+            );
+          }
+        }
+
+        // Batch fetch rooms
+        if (roomIds.isNotEmpty) {
+          final roomIdList = roomIds.toList();
+          for (var i = 0; i < roomIdList.length; i += 10) {
+            final chunk = roomIdList.skip(i).take(10).toList();
+            futures.add(
+              _firestore.collection('rooms')
+                  .where(FieldPath.documentId, whereIn: chunk)
+                  .get()
+                  .then((snapshot) {
+                    for (var doc in snapshot.docs) {
+                      final data = doc.data() as Map<String, dynamic>? ?? {};
+                      roomMap[doc.id] = data;
+                    }
+                  })
+            );
+          }
+        }
+
+        // Wait for all batch fetches to complete
+        await Future.wait(futures);
+
+        // Now populate reservation data with guest and room info
+        final reservations = <ReservationModel>[];
+        for (var resData in reservationDataList) {
+          try {
+            // Get guest data from map
+            final guestId = resData['guest_id']?.toString();
+            if (guestId != null && guestMap.containsKey(guestId)) {
+              final guestData = guestMap[guestId]!;
+              resData['guest_name'] = '${guestData['first_name'] ?? ''} ${guestData['last_name'] ?? ''}'.trim();
+              resData['guest_email'] = guestData['email'];
+              resData['guest_phone'] = guestData['phone'];
+            }
+            
+            // Get room data from map
+            final roomId = resData['room_id']?.toString();
+            if (roomId != null && roomMap.containsKey(roomId)) {
+              final roomData = roomMap[roomId]!;
+              resData['room_number'] = roomData['room_number'];
+              resData['room_type'] = roomData['room_type'];
             }
             
             // Generate reservation_number if not present
@@ -72,7 +138,7 @@ class ReservationService extends ApiService {
             final reservation = ReservationModel.fromJson(resData);
             reservations.add(reservation);
           } catch (e) {
-            debugPrint('Error processing reservation ${doc.id}: $e');
+            debugPrint('Error processing reservation data: $e');
           }
         }
         
@@ -169,40 +235,106 @@ class ReservationService extends ApiService {
             .limit(100)
             .get();
 
-        final reservations = <ReservationModel>[];
-        
         // Filter by status in memory to avoid composite index
         final filteredDocs = snapshot.docs.where((doc) {
           final data = doc.data() as Map<String, dynamic>? ?? {};
           final status = data['status'] as String?;
           return status == 'reserved' || status == 'checked_in';
         }).toList();
-        
+
+        if (filteredDocs.isEmpty) {
+          return [];
+        }
+
+        // Collect all unique guest IDs and room IDs for batch fetching
+        final guestIds = <String>{};
+        final roomIds = <String>{};
+        final reservationDataList = <Map<String, dynamic>>[];
+
         for (var doc in filteredDocs) {
           try {
             final resData = _docToReservationJson(doc);
+            reservationDataList.add(resData);
             
-            // Get guest data
             final guestId = resData['guest_id'];
             if (guestId != null) {
-              final guestDoc = await _firestore.collection('guests').doc(guestId.toString()).get();
-              if (guestDoc.exists) {
-                final guestData = guestDoc.data() as Map<String, dynamic>? ?? {};
-                resData['guest_name'] = '${guestData['first_name'] ?? ''} ${guestData['last_name'] ?? ''}'.trim();
-                resData['guest_email'] = guestData['email'];
-                resData['guest_phone'] = guestData['phone'];
-              }
+              guestIds.add(guestId.toString());
             }
             
-            // Get room data
             final roomId = resData['room_id'];
             if (roomId != null) {
-              final roomDoc = await _firestore.collection('rooms').doc(roomId.toString()).get();
-              if (roomDoc.exists) {
-                final roomData = roomDoc.data() as Map<String, dynamic>? ?? {};
-                resData['room_number'] = roomData['room_number'];
-                resData['room_type'] = roomData['room_type'];
-              }
+              roomIds.add(roomId.toString());
+            }
+          } catch (e) {
+            debugPrint('Error processing reservation ${doc.id}: $e');
+          }
+        }
+
+        // Batch fetch all guests and rooms in parallel
+        final futures = <Future>[];
+        final guestMap = <String, Map<String, dynamic>>{};
+        final roomMap = <String, Map<String, dynamic>>{};
+
+        // Batch fetch guests (Firestore allows up to 10 items in whereIn, so we need to chunk)
+        if (guestIds.isNotEmpty) {
+          final guestIdList = guestIds.toList();
+          for (var i = 0; i < guestIdList.length; i += 10) {
+            final chunk = guestIdList.skip(i).take(10).toList();
+            futures.add(
+              _firestore.collection('guests')
+                  .where(FieldPath.documentId, whereIn: chunk)
+                  .get()
+                  .then((snapshot) {
+                    for (var doc in snapshot.docs) {
+                      final data = doc.data() as Map<String, dynamic>? ?? {};
+                      guestMap[doc.id] = data;
+                    }
+                  })
+            );
+          }
+        }
+
+        // Batch fetch rooms
+        if (roomIds.isNotEmpty) {
+          final roomIdList = roomIds.toList();
+          for (var i = 0; i < roomIdList.length; i += 10) {
+            final chunk = roomIdList.skip(i).take(10).toList();
+            futures.add(
+              _firestore.collection('rooms')
+                  .where(FieldPath.documentId, whereIn: chunk)
+                  .get()
+                  .then((snapshot) {
+                    for (var doc in snapshot.docs) {
+                      final data = doc.data() as Map<String, dynamic>? ?? {};
+                      roomMap[doc.id] = data;
+                    }
+                  })
+            );
+          }
+        }
+
+        // Wait for all batch fetches to complete
+        await Future.wait(futures);
+
+        // Now populate reservation data with guest and room info
+        final reservations = <ReservationModel>[];
+        for (var resData in reservationDataList) {
+          try {
+            // Get guest data from map
+            final guestId = resData['guest_id']?.toString();
+            if (guestId != null && guestMap.containsKey(guestId)) {
+              final guestData = guestMap[guestId]!;
+              resData['guest_name'] = '${guestData['first_name'] ?? ''} ${guestData['last_name'] ?? ''}'.trim();
+              resData['guest_email'] = guestData['email'];
+              resData['guest_phone'] = guestData['phone'];
+            }
+            
+            // Get room data from map
+            final roomId = resData['room_id']?.toString();
+            if (roomId != null && roomMap.containsKey(roomId)) {
+              final roomData = roomMap[roomId]!;
+              resData['room_number'] = roomData['room_number'];
+              resData['room_type'] = roomData['room_type'];
             }
             
             // Set balance_due to total_price if not set (no billing yet)
@@ -225,7 +357,7 @@ class ReservationService extends ApiService {
               reservations.add(reservation);
             }
           } catch (e) {
-            debugPrint('Error processing reservation ${doc.id}: $e');
+            debugPrint('Error processing reservation data: $e');
           }
         }
         

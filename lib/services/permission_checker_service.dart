@@ -138,41 +138,63 @@ class PermissionCheckerService {
 
       debugPrint('PermissionChecker: Found ${permissionsQuery.docs.length} role_permissions documents');
 
-      // Get permission keys from role_permissions collection
+      // Batch fetch permissions from role_permissions collection
+      final permissionIds = <dynamic>{};
       for (var rolePermDoc in permissionsQuery.docs) {
         final rolePermData = rolePermDoc.data();
         final permissionId = rolePermData['permission_id'];
-        
         if (permissionId != null) {
-          // Find permission by ID (permissions collection uses permission_id or doc ID)
+          permissionIds.add(permissionId);
+        }
+      }
+
+      // Batch fetch all permissions at once
+      if (permissionIds.isNotEmpty) {
+        final permissionIdList = permissionIds.toList();
+        final permissionMap = <dynamic, String>{};
+        
+        // Firestore whereIn allows up to 10 items, so we need to chunk
+        for (var i = 0; i < permissionIdList.length; i += 10) {
+          final chunk = permissionIdList.skip(i).take(10).toList();
           final permQuery = await _firestore
               .collection('permissions')
-              .where('permission_id', isEqualTo: permissionId)
-              .limit(1)
+              .where('permission_id', whereIn: chunk)
               .get();
           
-          if (permQuery.docs.isEmpty) {
-            // Try by doc ID
-            final permDoc = await _firestore
-                .collection('permissions')
-                .doc(permissionId.toString())
-                .get();
-            
-            if (permDoc.exists) {
-              final permData = permDoc.data() as Map<String, dynamic>? ?? {};
-              final key = permData['key'] as String?;
-              if (key != null) {
-                permissionKeys.add(key);
-              }
-            }
-          } else {
-            final permData = permQuery.docs.first.data();
+          for (var doc in permQuery.docs) {
+            final permData = doc.data();
+            final permId = permData['permission_id'];
             final key = permData['key'] as String?;
-            if (key != null) {
-              permissionKeys.add(key);
+            if (permId != null && key != null) {
+              permissionMap[permId] = key;
             }
           }
         }
+
+        // Also try fetching by document ID for any missing permissions
+        for (var permId in permissionIds) {
+          if (!permissionMap.containsKey(permId)) {
+            try {
+              final permDoc = await _firestore
+                  .collection('permissions')
+                  .doc(permId.toString())
+                  .get();
+              
+              if (permDoc.exists) {
+                final permData = permDoc.data() as Map<String, dynamic>? ?? {};
+                final key = permData['key'] as String?;
+                if (key != null) {
+                  permissionMap[permId] = key;
+                }
+              }
+            } catch (e) {
+              debugPrint('Error fetching permission by doc ID $permId: $e');
+            }
+          }
+        }
+
+        // Add all found permission keys
+        permissionKeys.addAll(permissionMap.values);
       }
 
       // Cache permissions
