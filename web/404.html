@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Redirecting...</title>
+  <script>
+    // GitHub Pages 404.html redirect
+    // This ensures all routes work with path-based routing
+    var path = window.location.pathname;
+    var hash = window.location.hash;
+    
+    // If we're at the root or a known path, redirect to index.html
+    if (path === '/' || path === '/hotel1/' || path.startsWith('/hotel1/')) {
+      // Remove /hotel1/ prefix if present and redirect to index.html
+      var cleanPath = path.replace(/^\/hotel1/, '');
+      if (cleanPath === '' || cleanPath === '/') {
+        window.location.replace('/hotel1/index.html' + hash);
+      } else {
+        window.location.replace('/hotel1/index.html' + cleanPath + hash);
+      }
+    } else {
+      // Fallback: redirect to index.html
+      window.location.replace('/hotel1/index.html' + hash);
+    }
+  </script>
+  <meta http-equiv="refresh" content="0; url=/hotel1/index.html">
+</head>
+<body>
+  <p>Redirecting to <a href="/hotel1/index.html">home page</a>...</p>
+</body>
+</html>
+
