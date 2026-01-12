@@ -225,6 +225,20 @@ class PermissionsInitService {
         category: 'settings',
         description: 'Edit system settings',
       ),
+      
+      // Landing Page Permissions
+      PermissionModel(
+        name: 'View Landing Page',
+        key: 'landing.view',
+        category: 'landing',
+        description: 'View the public landing page',
+      ),
+      PermissionModel(
+        name: 'Manage Landing Page',
+        key: 'landing.manage',
+        category: 'landing',
+        description: 'Manage landing page content, media, and settings',
+      ),
     ];
   }
 
@@ -262,6 +276,7 @@ class PermissionsInitService {
         'messages.view',
         'users.view', 'users.create', 'users.edit', 'users.delete', 'roles.manage',
         'settings.view', 'settings.edit',
+        'landing.view', 'landing.manage',
       ],
       'Admin': [
         'dashboard.view',
@@ -275,6 +290,7 @@ class PermissionsInitService {
         'messages.view',
         'users.view', 'users.create', 'users.edit', 'users.delete', 'roles.manage',
         'settings.view', 'settings.edit',
+        'landing.view', 'landing.manage',
       ],
       'Manager': [
         'dashboard.view',
@@ -288,6 +304,7 @@ class PermissionsInitService {
         'messages.view',
         'users.view',
         'settings.view',
+        'landing.view', 'landing.manage',
       ],
       'Receptionist': [
         'dashboard.view',

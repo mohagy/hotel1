@@ -218,7 +218,7 @@ class AppRouter {
           GoRoute(
             path: '/landing-page',
             builder: (context, state) => PermissionGuard(
-              requiredPermission: 'settings.view',
+              requiredPermission: 'landing.manage',
               child: const LandingPageManagementScreen(),
             ),
           ),

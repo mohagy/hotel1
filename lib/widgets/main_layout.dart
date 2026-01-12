@@ -252,7 +252,7 @@ class _Sidebar extends StatelessWidget {
                         currentRoute: currentRoute,
                         collapsed: collapsed,
                       ),
-                    if (hasPermission('settings.view'))
+                    if (hasPermission('landing.manage'))
                       _NavItem(
                         icon: Icons.home,
                         label: 'Landing Page',

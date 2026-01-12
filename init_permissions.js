@@ -70,6 +70,10 @@ const defaultPermissions = [
   // Settings
   { name: 'View Settings', key: 'settings.view', category: 'settings', description: 'View settings' },
   { name: 'Edit Settings', key: 'settings.edit', category: 'settings', description: 'Edit settings' },
+  
+  // Landing Page
+  { name: 'View Landing Page', key: 'landing.view', category: 'landing', description: 'View the public landing page' },
+  { name: 'Manage Landing Page', key: 'landing.manage', category: 'landing', description: 'Manage landing page content, media, and settings' },
 ];
 
 // Default roles with their permissions (based on permissions_init_service.dart)
@@ -86,6 +90,7 @@ const defaultRolesPermissions = {
     'messages.view',
     'users.view', 'users.create', 'users.edit', 'users.delete', 'roles.manage',
     'settings.view', 'settings.edit',
+    'landing.view', 'landing.manage',
   ],
   'Admin': [
     'dashboard.view',
@@ -99,6 +104,7 @@ const defaultRolesPermissions = {
     'messages.view',
     'users.view', 'users.create', 'users.edit', 'users.delete', 'roles.manage',
     'settings.view', 'settings.edit',
+    'landing.view', 'landing.manage',
   ],
   'Manager': [
     'dashboard.view',
@@ -112,6 +118,7 @@ const defaultRolesPermissions = {
     'messages.view',
     'users.view',
     'settings.view',
+    'landing.view', 'landing.manage',
   ],
   'Receptionist': [
     'dashboard.view',
