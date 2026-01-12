@@ -117,15 +117,28 @@ class PermissionCheckerService {
       final roleData = roleDoc.data();
       final roleId = roleData['role_id'] ?? int.tryParse(roleDoc.id) ?? 0;
 
-      // Get role permissions - role_permissions collection uses role_id (int) and permission_id (int)
+      final permissionKeys = <String>{};
+
+      // Check if role has permissions array field (newer format)
+      if (roleData.containsKey('permissions') && roleData['permissions'] is List) {
+        final permissionsList = roleData['permissions'] as List;
+        debugPrint('PermissionChecker: Found permissions array in role: ${permissionsList.length} items');
+        for (var perm in permissionsList) {
+          if (perm is String) {
+            permissionKeys.add(perm);
+          }
+        }
+      }
+
+      // Also check role_permissions collection (older format or if array is empty)
       final permissionsQuery = await _firestore
           .collection('role_permissions')
           .where('role_id', isEqualTo: roleId)
           .get();
 
-      final permissionKeys = <String>{};
+      debugPrint('PermissionChecker: Found ${permissionsQuery.docs.length} role_permissions documents');
 
-      // Get permission keys
+      // Get permission keys from role_permissions collection
       for (var rolePermDoc in permissionsQuery.docs) {
         final rolePermData = rolePermDoc.data();
         final permissionId = rolePermData['permission_id'];

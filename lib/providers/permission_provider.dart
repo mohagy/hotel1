@@ -66,7 +66,12 @@ class PermissionProvider extends ChangeNotifier {
 
   /// Check if user has a specific permission
   bool hasPermission(String permissionKey) {
-    return _permissions.contains(permissionKey);
+    final hasIt = _permissions.contains(permissionKey);
+    if (permissionKey == 'landing.manage') {
+      debugPrint('🔍 Checking landing.manage: $hasIt (Total permissions: ${_permissions.length})');
+      debugPrint('🔍 All permissions: ${_permissions.toList()}');
+    }
+    return hasIt;
   }
 
   /// Check if user has any of the specified permissions

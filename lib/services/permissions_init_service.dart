@@ -11,6 +11,7 @@ import 'role_service.dart';
 class PermissionsInitService {
   final PermissionService _permissionService = PermissionService();
   final RoleService _roleService = RoleService();
+  FirebaseFirestore get _firestore => FirebaseFirestore.instance;
 
   /// Get default permissions for hotel management system
   List<PermissionModel> getDefaultPermissions() {
@@ -392,7 +393,15 @@ class PermissionsInitService {
           // Merge: combine existing and new, remove duplicates
           final allPermissionIds = {...existingPermissionIds, ...newPermissionIds}.toList();
           
+          // Update role_permissions collection
           await _roleService.updateRolePermissions(role.roleId!, allPermissionIds);
+          
+          // Also update permissions array directly on role document (for faster access)
+          final roleDocRef = _firestore.collection('roles').doc(role.roleId.toString());
+          await roleDocRef.update({
+            'permissions': permissionKeys, // Store permission keys as array
+            'updated_at': FieldValue.serverTimestamp(),
+          });
         }
       }
     } catch (e) {

@@ -148,6 +148,44 @@ class RoleService {
       }
 
       await batch.commit();
+      
+      // Also store permission keys as array on role document for faster access
+      // Get permission keys from permission IDs
+      final permissionKeys = <String>[];
+      for (var permissionId in permissionIds) {
+        final permQuery = await _firestore
+            .collection('permissions')
+            .where('permission_id', isEqualTo: permissionId)
+            .limit(1)
+            .get();
+        
+        if (permQuery.docs.isNotEmpty) {
+          final permData = permQuery.docs.first.data();
+          final key = permData['key'] as String?;
+          if (key != null) {
+            permissionKeys.add(key);
+          }
+        } else {
+          // Try by doc ID
+          final permDoc = await _firestore
+              .collection('permissions')
+              .doc(permissionId.toString())
+              .get();
+          if (permDoc.exists) {
+            final permData = permDoc.data() as Map<String, dynamic>? ?? {};
+            final key = permData['key'] as String?;
+            if (key != null) {
+              permissionKeys.add(key);
+            }
+          }
+        }
+      }
+      
+      // Update role document with permissions array
+      await _firestore.collection('roles').doc(roleId.toString()).update({
+        'permissions': permissionKeys,
+        'updated_at': FieldValue.serverTimestamp(),
+      });
     } catch (e) {
       throw Exception('Failed to update role permissions: $e');
     }
