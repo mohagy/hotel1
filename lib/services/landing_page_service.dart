@@ -2,7 +2,6 @@
 /// 
 /// Handles landing page content management including media/images and room statistics
 
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'api_service.dart';
@@ -16,12 +15,9 @@ class LandingPageService extends ApiService {
   final ReservationService _reservationService = ReservationService();
 
   Future<bool> _isOnline() async {
-    try {
-      final result = await InternetAddress.lookup('google.com');
-      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
-    } catch (e) {
-      return false;
-    }
+    // For web, assume online if we can access Firestore
+    // In production, you might want to use a different check
+    return true;
   }
 
   /// Get landing page content

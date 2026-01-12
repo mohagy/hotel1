@@ -3,6 +3,7 @@
 /// Public-facing landing page matching the PHP version layout and features
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/landing_page_service.dart';
 import '../../services/room_service.dart';
@@ -38,20 +39,62 @@ class _LandingPageScreenState extends State<LandingPageScreen> {
     });
 
     try {
-      final results = await Future.wait([
-        _landingService.getLandingPageContent(),
-        _roomService.getRooms(),
-        _landingService.getRoomStatistics(),
-      ]);
+      // Load data with individual error handling to ensure we always have defaults
+      Map<String, dynamic> content = {};
+      List<RoomModel> rooms = [];
+      Map<String, int> roomStats = {};
+
+      try {
+        content = await _landingService.getLandingPageContent();
+      } catch (e) {
+        debugPrint('Error loading landing page content: $e');
+        // Use default content from service
+        content = {
+          'hotel_name': 'Grand Hotel',
+          'hotel_description': 'Discover the perfect blend of comfort, elegance, and world-class service',
+        };
+      }
+
+      try {
+        rooms = await _roomService.getRooms();
+      } catch (e) {
+        debugPrint('Error loading rooms: $e');
+        rooms = [];
+      }
+
+      try {
+        roomStats = await _landingService.getRoomStatistics();
+      } catch (e) {
+        debugPrint('Error loading room statistics: $e');
+        roomStats = {
+          'total': 0,
+          'available': 0,
+          'occupied': 0,
+          'booked': 0,
+        };
+      }
 
       setState(() {
-        _content = results[0] as Map<String, dynamic>;
-        _rooms = results[1] as List<RoomModel>;
-        _roomStats = results[2] as Map<String, int>;
+        _content = content;
+        _rooms = rooms;
+        _roomStats = roomStats;
         _isLoading = false;
       });
     } catch (e) {
+      debugPrint('Error in _loadData: $e');
+      // Set defaults to ensure page renders
       setState(() {
+        _content = {
+          'hotel_name': 'Grand Hotel',
+          'hotel_description': 'Discover the perfect blend of comfort, elegance, and world-class service',
+        };
+        _rooms = [];
+        _roomStats = {
+          'total': 0,
+          'available': 0,
+          'occupied': 0,
+          'booked': 0,
+        };
         _isLoading = false;
       });
     }
