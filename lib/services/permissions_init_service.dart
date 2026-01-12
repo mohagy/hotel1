@@ -2,6 +2,7 @@
 /// 
 /// Initializes default permissions and roles for the hotel management system
 
+import 'package:flutter/foundation.dart';
 import '../models/permission_model.dart';
 import '../models/role_model.dart';
 import 'permission_service.dart';
@@ -243,17 +244,25 @@ class PermissionsInitService {
   }
 
   /// Initialize permissions in Firestore
+  /// Creates all default permissions, including any new ones that don't exist yet
   Future<void> initializePermissions() async {
     try {
       final existingPermissions = await _permissionService.getPermissions();
+      final existingKeys = existingPermissions.map((p) => p.key).toSet();
       
-      // Only create if permissions don't exist
-      if (existingPermissions.isEmpty) {
-        final defaultPermissions = getDefaultPermissions();
-        
-        for (var permission in defaultPermissions) {
+      final defaultPermissions = getDefaultPermissions();
+      
+      // Create permissions that don't exist yet
+      int createdCount = 0;
+      for (var permission in defaultPermissions) {
+        if (!existingKeys.contains(permission.key)) {
           await _permissionService.createPermission(permission);
+          createdCount++;
         }
+      }
+      
+      if (createdCount > 0) {
+        debugPrint('Created $createdCount new permission(s)');
       }
     } catch (e) {
       throw Exception('Failed to initialize permissions: $e');
@@ -370,14 +379,20 @@ class PermissionsInitService {
           );
         }
 
-        // Assign permissions
+        // Assign permissions (merge with existing, don't replace)
         if (role.roleId != null) {
-          final permissionIds = permissionKeys
+          final newPermissionIds = permissionKeys
               .map((key) => permissionKeyToId[key])
               .whereType<int>()
               .toList();
-
-          await _roleService.updateRolePermissions(role.roleId!, permissionIds);
+          
+          // Get existing permissions for this role
+          final existingPermissionIds = await _roleService.getRolePermissions(role.roleId!);
+          
+          // Merge: combine existing and new, remove duplicates
+          final allPermissionIds = {...existingPermissionIds, ...newPermissionIds}.toList();
+          
+          await _roleService.updateRolePermissions(role.roleId!, allPermissionIds);
         }
       }
     } catch (e) {
