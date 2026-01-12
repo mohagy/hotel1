@@ -3,6 +3,7 @@
 /// Initializes default permissions and roles for the hotel management system
 
 import 'package:flutter/foundation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/permission_model.dart';
 import '../models/role_model.dart';
 import 'permission_service.dart';
