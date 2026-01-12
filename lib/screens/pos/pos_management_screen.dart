@@ -376,9 +376,7 @@ class _POSManagementScreenState extends State<POSManagementScreen> {
         _buildNavigationTabs(),
 
         // Content Sections
-        Expanded(
-          child: _buildCurrentSection(),
-        ),
+        _buildCurrentSection(),
       ],
     );
   }
