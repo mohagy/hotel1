@@ -2736,12 +2736,21 @@ class _ReceiptDialog extends StatelessWidget {
 
   void _printReceipt() {
     try {
-      // Use the print helper which handles platform differences via conditional imports
-      printDocument();
+      // Use the thermal receipt printer with barcode
+      printThermalReceipt(
+        order: order,
+        customerName: customerName,
+        amountPaid: amountPaid,
+        reservationNumber: reservationNumber,
+      );
     } catch (e) {
       debugPrint('Print error: $e');
-      // Show a snackbar to inform the user if print fails
-      // Note: This is handled by the print helper on web
+      // Fallback to regular print
+      try {
+        printDocument();
+      } catch (e2) {
+        debugPrint('Fallback print error: $e2');
+      }
     }
   }
 

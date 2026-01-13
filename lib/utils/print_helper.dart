@@ -7,3 +7,6 @@
 export 'print_helper_stub.dart'
     if (dart.library.html) 'print_helper_web.dart';
 
+// Export order model for print function
+export '../models/order_model.dart';
+

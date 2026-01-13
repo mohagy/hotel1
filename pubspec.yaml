@@ -82,6 +82,7 @@ dependencies:
   qr_flutter: ^4.1.0
   connectivity_plus: ^5.0.2
   js: ^0.6.7
+  barcode: ^2.2.0
   
   # Audio
   audioplayers: ^6.1.0
