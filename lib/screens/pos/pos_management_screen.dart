@@ -245,139 +245,141 @@ class _POSManagementScreenState extends State<POSManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Page Header
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'POS Management',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF2c3e50),
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          // Page Header
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'POS Management',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF2c3e50),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    'Manage your Point of Sale system - Select a mode to begin',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade600,
+                    const SizedBox(height: 5),
+                    Text(
+                      'Manage your Point of Sale system - Select a mode to begin',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                      ),
                     ),
+                  ],
+                ),
+                ElevatedButton.icon(
+                  onPressed: _openPOSTerminal,
+                  icon: const Icon(Icons.point_of_sale),
+                  label: const Text('Open POS Terminal'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF3498db),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   ),
-                ],
-              ),
-              ElevatedButton.icon(
-                onPressed: _openPOSTerminal,
-                icon: const Icon(Icons.point_of_sale),
-                label: const Text('Open POS Terminal'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF3498db),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 ),
-              ),
-            ],
-          ),
-        ),
-
-        // Mode Selector
-        Container(
-          padding: const EdgeInsets.all(15),
-          margin: const EdgeInsets.all(30),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: _ModeButton(
-                  icon: Icons.shopping_bag,
-                  label: 'Retail',
-                  subtitle: 'Products & Inventory',
-                  mode: 'retail',
-                  currentMode: _currentMode,
-                  onTap: () => _switchMode('retail'),
-                  activeColor: const Color(0xFF3498db),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _ModeButton(
-                  icon: Icons.restaurant,
-                  label: 'Restaurant',
-                  subtitle: 'Menu & Tables',
-                  mode: 'restaurant',
-                  currentMode: _currentMode,
-                  onTap: () => _switchMode('restaurant'),
-                  activeColor: const Color(0xFF27ae60),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _ModeButton(
-                  icon: Icons.calendar_today,
-                  label: 'Reservation',
-                  subtitle: 'Bookings & Reservations',
-                  mode: 'reservation',
-                  currentMode: _currentMode,
-                  onTap: () => _switchMode('reservation'),
-                  activeColor: const Color(0xFFf39c12),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // Metrics Cards
-        if (_currentMode == 'retail')
-          _RetailMetricsCards(
-            totalProducts: _totalProducts,
-            totalCategories: _totalCategories,
-            todaySales: _todaySales,
-            totalOrders: _totalOrders,
-          )
-        else if (_currentMode == 'restaurant')
-          _RestaurantMetricsCards(
-            menuItems: _restaurantMenuCount,
-            barItems: _barMenuCount,
-            tableReservations: _tableReservationsCount,
-            availableTables: _availableTables,
-          )
-        else
-          _ReservationMetricsCards(
-            hotelReservations: _hotelReservationsCount,
-            tableReservations: _tableReservationsCount,
-            availableTables: _availableTables,
+              ],
+            ),
           ),
 
-        const SizedBox(height: 30),
+          // Mode Selector
+          Container(
+            padding: const EdgeInsets.all(15),
+            margin: const EdgeInsets.all(30),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _ModeButton(
+                    icon: Icons.shopping_bag,
+                    label: 'Retail',
+                    subtitle: 'Products & Inventory',
+                    mode: 'retail',
+                    currentMode: _currentMode,
+                    onTap: () => _switchMode('retail'),
+                    activeColor: const Color(0xFF3498db),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _ModeButton(
+                    icon: Icons.restaurant,
+                    label: 'Restaurant',
+                    subtitle: 'Menu & Tables',
+                    mode: 'restaurant',
+                    currentMode: _currentMode,
+                    onTap: () => _switchMode('restaurant'),
+                    activeColor: const Color(0xFF27ae60),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _ModeButton(
+                    icon: Icons.calendar_today,
+                    label: 'Reservation',
+                    subtitle: 'Bookings & Reservations',
+                    mode: 'reservation',
+                    currentMode: _currentMode,
+                    onTap: () => _switchMode('reservation'),
+                    activeColor: const Color(0xFFf39c12),
+                  ),
+                ),
+              ],
+            ),
+          ),
 
-        // Navigation Tabs
-        _buildNavigationTabs(),
+          // Metrics Cards
+          if (_currentMode == 'retail')
+            _RetailMetricsCards(
+              totalProducts: _totalProducts,
+              totalCategories: _totalCategories,
+              todaySales: _todaySales,
+              totalOrders: _totalOrders,
+            )
+          else if (_currentMode == 'restaurant')
+            _RestaurantMetricsCards(
+              menuItems: _restaurantMenuCount,
+              barItems: _barMenuCount,
+              tableReservations: _tableReservationsCount,
+              availableTables: _availableTables,
+            )
+          else
+            _ReservationMetricsCards(
+              hotelReservations: _hotelReservationsCount,
+              tableReservations: _tableReservationsCount,
+              availableTables: _availableTables,
+            ),
 
-        // Content Sections
-        _buildCurrentSection(),
-      ],
+          const SizedBox(height: 30),
+
+          // Navigation Tabs
+          _buildNavigationTabs(),
+
+          // Content Sections
+          _buildCurrentSection(),
+        ],
+      ),
     );
   }
 
@@ -966,7 +968,7 @@ class _RetailSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return Padding(
       padding: const EdgeInsets.all(30),
       child: _buildSectionContent(context),
     );
@@ -1709,7 +1711,7 @@ class _RestaurantSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return Padding(
       padding: const EdgeInsets.all(30),
       child: _buildSectionContent(context),
     );
@@ -2142,7 +2144,7 @@ class _ReservationSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return Padding(
       padding: const EdgeInsets.all(30),
       child: _buildSectionContent(context),
     );
