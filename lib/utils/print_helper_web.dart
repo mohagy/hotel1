@@ -3,6 +3,7 @@
 /// Web-specific implementation for thermal receipt printing with barcode
 
 import 'dart:html' as html;
+import 'package:flutter/foundation.dart';
 import '../models/order_model.dart';
 import '../core/utils/formatters.dart';
 
@@ -39,20 +40,31 @@ void printThermalReceipt({
       storePhone: storePhone ?? '',
     );
     
-    // Create a new window for printing
-    final printWindow = html.window.open('', '_blank');
+    // Create a new window for printing using Blob URL
+    final blob = html.Blob([receiptHtml], 'text/html');
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    final printWindow = html.window.open(url, '_blank');
+    
     if (printWindow != null) {
-      // Cast to Window to access document property
-      final window = printWindow as html.Window;
-      window.document.write(receiptHtml);
-      window.document.close();
-      
-      // Wait for barcode to load, then print
-      window.onLoad.listen((_) {
-        Future.delayed(const Duration(milliseconds: 500), () {
+      // Wait for window to load, then print
+      // Use Future.delayed to wait for the barcode library to load
+      Future.delayed(const Duration(milliseconds: 1500), () {
+        try {
+          // Cast to Window to access print method
+          final window = printWindow as html.Window;
           window.print();
-          // Close window after printing (optional)
-          // window.close();
+        } catch (e) {
+          debugPrint('Print error: $e');
+        }
+        // Clean up the blob URL after printing
+        Future.delayed(const Duration(milliseconds: 100), () {
+          html.Url.revokeObjectUrl(url);
+          // Optionally close the window after a delay
+          try {
+            (printWindow as html.Window).close();
+          } catch (e) {
+            debugPrint('Close window error: $e');
+          }
         });
       });
     }
